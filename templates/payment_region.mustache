@@ -1,0 +1,74 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template enrol_donation/payment_region
+
+    Renders the donation amount summary and a button that opens the payment gateway modal for a
+    single, already-created {enrol_donation_intent}. Never links back with the intent id in the
+    URL: the only way to change the amount is the GET link back to the plain donation form.
+
+    Data attributes required for JS:
+    * data-component
+    * data-paymentarea
+    * data-itemid
+    * data-cost
+    * data-description
+    * data-successurl
+
+    Context variables required for this template:
+    * amount - Human readable amount string including currency
+    * component - core_payment component name ("enrol_donation")
+    * paymentarea - core_payment payment area name ("donation")
+    * itemid - the enrol_donation_intent id
+    * description - the description for this donation
+    * successurl - the URL of the course, shown on successful payment
+    * changeamounturl - GET link back to the plain donation amount form
+
+    Example context (json):
+    {
+        "amount": "€25.00",
+        "component": "enrol_donation",
+        "paymentarea": "donation",
+        "itemid": 42,
+        "description": "Donation to enrol in Introduction to algorithms",
+        "successurl": "https://moodlesite/course/view.php?id=2",
+        "changeamounturl": "https://moodlesite/enrol/index.php?id=2"
+    }
+}}
+<div class="enrol_donation_payment_region text-center">
+    <p>{{amount}}</p>
+    <button
+        class="btn btn-primary"
+        type="button"
+        id="gateways-modal-trigger-{{ uniqid }}"
+        data-action="core_payment/triggerPayment"
+        data-component="{{component}}"
+        data-paymentarea="{{paymentarea}}"
+        data-itemid="{{itemid}}"
+        data-cost="{{amount}}"
+        data-successurl="{{successurl}}"
+        data-description="{{description}}"
+    >
+        {{#str}} selectpaymenttype, core_payment {{/str}}
+    </button>
+    <p><a href="{{changeamounturl}}">{{#str}} changeamount, enrol_donation {{/str}}</a></p>
+</div>
+{{#js}}
+    require(['core_payment/gateways_modal'], function(modal) {
+        modal.init();
+    });
+{{/js}}
