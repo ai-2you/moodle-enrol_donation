@@ -28,6 +28,7 @@ $string['alertoverdue'] = '{$a} donation(s) were paid more than 24 hours ago but
 $string['alertsubject'] = 'Donation enrolments need attention';
 $string['alertunidentified'] = '{$a} donation(s) were paid without an identifiable payer and require manual review.';
 $string['alreadyenrolled'] = 'Your payment was received and you are now enrolled in this course.';
+$string['amountrange'] = 'Minimum {$a->min} — Maximum {$a->max}';
 $string['amounttoolarge'] = 'The donation cannot be more than the maximum shown.';
 $string['amounttoosmall'] = 'The donation must be at least the minimum shown.';
 $string['assignrole'] = 'Assign role';

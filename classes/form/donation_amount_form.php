@@ -50,13 +50,16 @@ class donation_amount_form extends \moodleform {
         /** @var \stdClass $instance */
         $instance = $this->_customdata['instance'];
 
-        $mform->addElement('hidden', 'id', $instance->id);
-        $mform->setType('id', PARAM_INT);
-
         $mform->addElement('hidden', 'instance', $instance->id);
         $mform->setType('instance', PARAM_INT);
 
         $default = intent::get_suggested($instance) ?? intent::get_minimum($instance);
+
+        $range = (object) [
+            'min' => \core_payment\helper::get_cost_as_string(intent::get_minimum($instance), $instance->currency),
+            'max' => \core_payment\helper::get_cost_as_string(intent::get_maximum($instance), $instance->currency),
+        ];
+        $mform->addElement('static', 'amountrange', '', get_string('amountrange', 'enrol_donation', $range));
 
         $mform->addElement('text', 'amount', get_string('donationamount', 'enrol_donation'), [
             'inputmode' => 'decimal',
