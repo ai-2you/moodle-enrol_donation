@@ -103,6 +103,38 @@ jobs:
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci grunt --max-lint-warnings 0
 
+      - name: Install es/id language packs for PHPUnit locale tests
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          # ci/.env is written by `moodle-plugin-ci install` and re-read by every later
+          # moodle-plugin-ci invocation (see moodlehq/moodle-plugin-ci bin/moodle-plugin-ci),
+          # so sourcing it gives us the real Moodle checkout path with no guessing.
+          . ci/.env
+
+          BRANCH_CODE=$(grep -E "branch[[:space:]]*=[[:space:]]*'" "$MOODLE_DIR/version.php" | grep -oE '[0-9]+' | head -1)
+          MOODLE_VERSION="${BRANCH_CODE:0:1}.$((10#${BRANCH_CODE:1}))"
+
+          PHPU_DATAROOT=$(grep -oP "phpunit_dataroot\s*=\s*'\K[^']+" "$MOODLE_DIR/config.php")
+          mkdir -p "$PHPU_DATAROOT/lang"
+
+          for LANG in es id; do
+            curl -sSfL -o "/tmp/${LANG}.zip" "https://download.moodle.org/download.php/langpack/${MOODLE_VERSION}/${LANG}.zip"
+            unzip -q -o "/tmp/${LANG}.zip" -d "$PHPU_DATAROOT/lang"
+          done
+
+          # Moodle wipes phpunit_dataroot at bootstrap and again after every
+          # resetAfterTest() (lib/phpunit/classes/util.php reset_dataroot()), except
+          # entries listed in originaldatafiles.json. Add "lang" there so the installed
+          # packs survive the whole PHPUnit run instead of being deleted before use.
+          php -r '
+            $f = $argv[1];
+            $list = file_exists($f) ? json_decode(file_get_contents($f), true) : [];
+            if (!is_array($list)) { $list = []; }
+            if (!in_array("lang", $list, true)) { $list[] = "lang"; }
+            file_put_contents($f, json_encode($list));
+          ' "$PHPU_DATAROOT/originaldatafiles.json"
+
       - name: PHPUnit tests
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci phpunit --fail-on-warning --fail-on-skipped
