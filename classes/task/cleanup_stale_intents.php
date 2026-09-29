@@ -34,11 +34,12 @@ use enrol_donation\local\intent;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cleanup_stale_intents extends \core\task\scheduled_task {
-
     /** @var int Minimum retention in days, regardless of site configuration. */
     const MINIMUM_RETENTION_DAYS = 30;
 
     /**
+     * Returns the task's name shown in the scheduled tasks admin UI.
+     *
      * @return string
      */
     public function get_name() {
@@ -46,6 +47,8 @@ class cleanup_stale_intents extends \core\task\scheduled_task {
     }
 
     /**
+     * Deletes never-paid donation intents older than the effective retention period.
+     *
      * @return void
      */
     public function execute() {

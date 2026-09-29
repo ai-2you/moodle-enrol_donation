@@ -36,7 +36,6 @@ namespace enrol_donation\local;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class delivery {
-
     /**
      * Enrols the payer of a paid intent, if they are a valid identifiable user and are not
      * already enrolled. Always marks the intent as delivered on success. Never opens a

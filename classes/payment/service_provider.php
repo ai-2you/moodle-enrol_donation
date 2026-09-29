@@ -41,7 +41,6 @@ use enrol_donation\local\intent;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class service_provider implements \core_payment\local\callback\service_provider {
-
     /**
      * Callback function that returns the donation amount and the accountid for the course that
      * the $itemid intent belongs to.

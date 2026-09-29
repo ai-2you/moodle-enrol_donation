@@ -29,7 +29,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_donation_plugin extends enrol_plugin {
-
     /**
      * Returns the list of currencies that the payment subsystem supports.
      *
@@ -43,7 +42,7 @@ class enrol_donation_plugin extends enrol_plugin {
             $currencies[$c] = new lang_string($c, 'core_currencies');
         }
 
-        uasort($currencies, function($a, $b) {
+        uasort($currencies, function ($a, $b) {
             return strcmp($a, $b);
         });
 
@@ -74,23 +73,48 @@ class enrol_donation_plugin extends enrol_plugin {
         return [];
     }
 
+    /**
+     * Allows administrators and teachers to freely change the role assigned by this method.
+     *
+     * @return bool
+     */
     public function roles_protected() {
         return false;
     }
 
+    /**
+     * Allows users with the unenrol capability to manually unenrol anyone enrolled through this method.
+     *
+     * @param stdClass $instance course enrol instance
+     * @return bool
+     */
     public function allow_unenrol(stdClass $instance) {
         return true;
     }
 
+    /**
+     * Allows users with the manage capability to edit enrolment period and status for this method.
+     *
+     * @param stdClass $instance course enrol instance
+     * @return bool
+     */
     public function allow_manage(stdClass $instance) {
         return true;
     }
 
+    /**
+     * Shows the self-enrolment link only while the donation enrolment instance is enabled.
+     *
+     * @param stdClass $instance course enrol instance
+     * @return bool
+     */
     public function show_enrolme_link(stdClass $instance) {
         return ($instance->status == ENROL_INSTANCE_ENABLED);
     }
 
     /**
+     * Allows adding a donation instance only when a currency and the config capability are available.
+     *
      * @param int $courseid
      * @return bool
      */
@@ -109,6 +133,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Uses Moodle's standard enrolment method editing UI for this plugin's instance form.
+     *
      * @return bool
      */
     public function use_standard_editing_ui() {
@@ -116,6 +142,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Normalises the amount fields before creating a new donation enrolment instance.
+     *
      * @param object $course
      * @param array|null $fields
      * @return int id of new instance
@@ -128,6 +156,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Normalises the amount fields before updating an existing donation enrolment instance.
+     *
      * @param stdClass $instance
      * @param stdClass $data
      * @return bool
@@ -208,6 +238,7 @@ class enrol_donation_plugin extends enrol_plugin {
                     return $this->render_payment_summary($instance, $course, $context, $donationintent);
                 } catch (moodle_exception $e) {
                     // Per-session soft limit reached: fall through and show the form again below.
+                    unset($e);
                 }
             }
         }
@@ -269,15 +300,23 @@ class enrol_donation_plugin extends enrol_plugin {
      * @param stdClass $donationintent
      * @return string
      */
-    protected function render_payment_summary(stdClass $instance, stdClass $course, context $context, stdClass $donationintent): string {
+    protected function render_payment_summary(
+        stdClass $instance,
+        stdClass $course,
+        context $context,
+        stdClass $donationintent
+    ): string {
         global $OUTPUT;
 
         $changeurl = new moodle_url('/enrol/index.php', ['id' => $course->id]);
 
         $data = [
             'amount' => \core_payment\helper::get_cost_as_string((float) $donationintent->amount, $donationintent->currency),
-            'description' => get_string('purchasedescription', 'enrol_donation',
-                format_string($course->fullname, true, ['context' => $context])),
+            'description' => get_string(
+                'purchasedescription',
+                'enrol_donation',
+                format_string($course->fullname, true, ['context' => $context])
+            ),
             'component' => 'enrol_donation',
             'paymentarea' => 'donation',
             'itemid' => $donationintent->id,
@@ -337,6 +376,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Re-enrols a restored user with the same start/end dates and status they had at backup time.
+     *
      * @param restore_enrolments_structure_step $step
      * @param stdClass $data
      * @param stdClass $instance
@@ -367,6 +408,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Returns the enabled/disabled options offered for this method's status field.
+     *
      * @return array
      */
     protected function get_status_options() {
@@ -397,6 +440,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Allows deleting a donation instance only for users with the config capability.
+     *
      * @param stdClass $instance
      * @return bool
      */
@@ -406,6 +451,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Allows hiding/showing a donation instance only for users with the config capability.
+     *
      * @param stdClass $instance
      * @return bool
      */
@@ -415,6 +462,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Builds the donation instance editing form fields.
+     *
      * @param stdClass $instance
      * @param MoodleQuickForm $mform
      * @param context $context
@@ -432,8 +481,12 @@ class enrol_donation_plugin extends enrol_plugin {
             $accounts = ((count($accounts) > 1) ? ['' => ''] : []) + $accounts;
             $mform->addElement('select', 'customint1', get_string('paymentaccount', 'payment'), $accounts);
         } else {
-            $mform->addElement('static', 'customint1_text', get_string('paymentaccount', 'payment'),
-                html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-danger'));
+            $mform->addElement(
+                'static',
+                'customint1_text',
+                get_string('paymentaccount', 'payment'),
+                html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-danger')
+            );
             $mform->addElement('hidden', 'customint1');
             $mform->setType('customint1', PARAM_INT);
         }
@@ -480,6 +533,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Validates the donation instance editing form, including the amount and payment account fields.
+     *
      * @param array $data
      * @param array $files
      * @param object $instance
@@ -514,9 +569,11 @@ class enrol_donation_plugin extends enrol_plugin {
 
         if (!empty($data['customchar1'])) {
             $suggested = \enrol_donation\local\intent::parse_amount((string) $data['customchar1']);
-            if ($suggested === null
+            if (
+                $suggested === null
                     || ($minimum !== null && $suggested < $minimum)
-                    || ($maximum !== null && $suggested > $maximum)) {
+                    || ($maximum !== null && $suggested > $maximum)
+            ) {
                 $errors['customchar1'] = get_string('suggestedoutsiderange', 'enrol_donation');
             }
         }
@@ -536,9 +593,11 @@ class enrol_donation_plugin extends enrol_plugin {
 
         $errors = array_merge($errors, $this->validate_param_types($data, $tovalidate));
 
-        if ((int) $data['status'] === ENROL_INSTANCE_ENABLED
+        if (
+            (int) $data['status'] === ENROL_INSTANCE_ENABLED
                 && (empty($data['customint1'])
-                    || !array_key_exists($data['customint1'], \core_payment\helper::get_payment_accounts_menu($context)))) {
+                    || !array_key_exists($data['customint1'], \core_payment\helper::get_payment_accounts_menu($context)))
+        ) {
             $errors['customint1'] = get_string('nopaymentaccount', 'enrol_donation');
         }
 
@@ -546,6 +605,8 @@ class enrol_donation_plugin extends enrol_plugin {
     }
 
     /**
+     * Expires overdue donation enrolments, as scheduled by the core enrol cron.
+     *
      * @param progress_trace $trace
      * @return int
      */

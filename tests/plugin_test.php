@@ -31,7 +31,6 @@ namespace enrol_donation;
  * @coversDefaultClass \enrol_donation_plugin
  */
 final class plugin_test extends \advanced_testcase {
-
     /** @var int|null cached core_payment account id, shared across the valid-data fixture. */
     private $accountid = null;
 
@@ -41,6 +40,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * Returns the enrol_donation test data generator.
+     *
      * @return \enrol_donation_generator
      */
     protected function donation_generator(): \enrol_donation_generator {
@@ -48,6 +49,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * Returns the enrol_donation plugin instance under test.
+     *
      * @return \enrol_donation_plugin
      */
     protected function plugin(): \enrol_donation_plugin {
@@ -55,7 +58,9 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
-     * @return int a reusable core_payment account id (paypal gateway).
+     * Returns a reusable core_payment account id (paypal gateway), creating it once and caching it.
+     *
+     * @return int
      */
     protected function payment_account_id(): int {
         if ($this->accountid === null) {
@@ -92,11 +97,11 @@ final class plugin_test extends \advanced_testcase {
         ];
     }
 
-    // ------------------------------------------------------------------
-    // edit_instance_validation().
-    // ------------------------------------------------------------------
+    // Tests for edit_instance_validation().
 
     /**
+     * edit_instance_validation() rejects a minimum donation of zero.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_zero_minimum(): void {
@@ -111,6 +116,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects a negative minimum donation.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_negative_minimum(): void {
@@ -125,6 +132,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects an empty maximum donation, since it is required.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_empty_maximum(): void {
@@ -139,6 +148,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects a maximum donation lower than the minimum.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_maximum_below_minimum(): void {
@@ -154,6 +165,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects a maximum donation above the technical hard ceiling.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_maximum_above_hard_max(): void {
@@ -168,6 +181,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects a currency not supported by the payment subsystem.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_unsupported_currency(): void {
@@ -182,6 +197,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects enabling the instance without a payment account.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_missing_payment_account_when_enabled(): void {
@@ -197,6 +214,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects a suggested donation outside the minimum/maximum range.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_suggested_outside_range(): void {
@@ -213,6 +232,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() accepts an empty suggested donation, since it is optional.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_accepts_empty_suggested(): void {
@@ -227,6 +248,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() accepts an empty support contact, since it is optional.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_accepts_empty_support_contact(): void {
@@ -241,6 +264,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * edit_instance_validation() rejects a role the editing user is not allowed to assign.
+     *
      * @covers ::edit_instance_validation
      */
     public function test_edit_instance_validation_rejects_roleid_outside_assignable_intersection(): void {
@@ -264,6 +289,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * update_instance() requires the config capability, even for an editingteacher.
+     *
      * @covers ::update_instance
      */
     public function test_update_instance_requires_config_capability_even_for_editingteacher(): void {
@@ -284,16 +311,17 @@ final class plugin_test extends \advanced_testcase {
             $this->fail('Expected a required_capability_exception: editingteacher lacks enrol/donation:config.');
         } catch (\required_capability_exception $e) {
             // Expected.
+            unset($e);
         }
 
         $this->assertEquals('5.00', $DB->get_field('enrol', 'cost', ['id' => $instance->id]));
     }
 
-    // ------------------------------------------------------------------
-    // restore_instance() - roleid clamp (red team SEC-3).
-    // ------------------------------------------------------------------
+    // Tests for restore_instance(): roleid clamp (red team SEC-3).
 
     /**
+     * restore_instance() clamps a manager roleid to the default when the restoring teacher can't assign it.
+     *
      * @covers ::restore_instance
      */
     public function test_restore_instance_clamps_manager_roleid_to_default_for_restoring_teacher(): void {
@@ -319,8 +347,14 @@ final class plugin_test extends \advanced_testcase {
         $course1 = get_course($instance->courseid);
 
         // Back up course1 (admin performs the backup).
-        $bc = new \backup_controller(\backup::TYPE_1COURSE, $course1->id, \backup::FORMAT_MOODLE,
-            \backup::INTERACTIVE_NO, \backup::MODE_GENERAL, $USER->id);
+        $bc = new \backup_controller(
+            \backup::TYPE_1COURSE,
+            $course1->id,
+            \backup::FORMAT_MOODLE,
+            \backup::INTERACTIVE_NO,
+            \backup::MODE_GENERAL,
+            $USER->id
+        );
         $bc->execute_plan();
         $backupid = $bc->get_backupid();
         $bc->destroy();
@@ -355,8 +389,14 @@ final class plugin_test extends \advanced_testcase {
 
         $this->setUser($teacher);
 
-        $rc = new \restore_controller($backupid, $course2->id,
-            \backup::INTERACTIVE_NO, \backup::MODE_GENERAL, $teacher->id, \backup::TARGET_EXISTING_ADDING);
+        $rc = new \restore_controller(
+            $backupid,
+            $course2->id,
+            \backup::INTERACTIVE_NO,
+            \backup::MODE_GENERAL,
+            $teacher->id,
+            \backup::TARGET_EXISTING_ADDING
+        );
         $rc->execute_precheck();
         $rc->execute_plan();
         $rc->destroy();
@@ -366,11 +406,11 @@ final class plugin_test extends \advanced_testcase {
         $this->assertNotEquals($managerrole->id, $restored->roleid);
     }
 
-    // ------------------------------------------------------------------
-    // delete_instance().
-    // ------------------------------------------------------------------
+    // Tests for delete_instance().
 
     /**
+     * delete_instance() removes the instance's donation intents but keeps its payment records.
+     *
      * @covers ::delete_instance
      */
     public function test_delete_instance_removes_intents_but_keeps_payments(): void {
@@ -389,11 +429,11 @@ final class plugin_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('enrol', ['id' => $instance->id]));
     }
 
-    // ------------------------------------------------------------------
-    // enrol_page_hook() - self-healing + PRG-less summary.
-    // ------------------------------------------------------------------
+    // Tests for enrol_page_hook(): self-healing + PRG-less summary.
 
     /**
+     * enrol_page_hook() self-heals a pending payment and hides the donation form once enrolled.
+     *
      * @covers ::enrol_page_hook
      */
     public function test_enrol_page_hook_delivers_pending_payment_and_hides_form(): void {
@@ -411,6 +451,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * enrol_page_hook() shows the instance's configured support contact when delivery fails.
+     *
      * @covers ::enrol_page_hook
      */
     public function test_enrol_page_hook_shows_configured_support_contact_when_delivery_fails(): void {
@@ -431,6 +473,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * enrol_page_hook() HTML-escapes the support contact when delivery fails.
+     *
      * @covers ::enrol_page_hook
      */
     public function test_enrol_page_hook_escapes_support_contact_when_delivery_fails(): void {
@@ -449,6 +493,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * enrol_page_hook() falls back to the site's supportemail when no instance contact is configured.
+     *
      * @covers ::enrol_page_hook
      */
     public function test_enrol_page_hook_falls_back_to_site_supportemail_when_no_contact_configured(): void {
@@ -468,6 +514,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * enrol_page_hook() renders the payment summary with a data-itemid attribute and no donationintent param.
+     *
      * @covers ::enrol_page_hook
      */
     public function test_enrol_page_hook_post_renders_summary_with_itemid_and_no_donationintent_param(): void {
@@ -494,6 +542,8 @@ final class plugin_test extends \advanced_testcase {
     }
 
     /**
+     * The donation amount form pre-fills the field with the instance's suggested amount.
+     *
      * @covers \enrol_donation\form\donation_amount_form
      */
     public function test_donation_amount_form_prefills_suggested_amount(): void {

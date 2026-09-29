@@ -31,13 +31,14 @@ namespace enrol_donation\payment;
  * @coversDefaultClass \enrol_donation\payment\service_provider
  */
 final class service_provider_test extends \advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
     }
 
     /**
+     * Returns the enrol_donation test data generator.
+     *
      * @return \enrol_donation_generator
      */
     protected function donation_generator(): \enrol_donation_generator {
@@ -45,6 +46,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_payable() returns the intent's amount, currency and the instance's payment account.
+     *
      * @covers ::get_payable
      */
     public function test_get_payable_returns_amount_currency_and_account(): void {
@@ -68,6 +71,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_payable() throws when asked for an intent id that does not exist.
+     *
      * @covers ::get_payable
      */
     public function test_get_payable_rejects_nonexistent_intent(): void {
@@ -76,6 +81,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_payable() throws when the intent has already been paid.
+     *
      * @covers ::get_payable
      */
     public function test_get_payable_rejects_already_paid_intent(): void {
@@ -89,6 +96,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_payable() still returns a payable when the enrolment instance is disabled.
+     *
      * @covers ::get_payable
      */
     public function test_get_payable_succeeds_for_disabled_instance(): void {
@@ -101,6 +110,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_payable() still returns a payable when the enrolment instance's end date has passed.
+     *
      * @covers ::get_payable
      */
     public function test_get_payable_succeeds_for_expired_instance(): void {
@@ -115,6 +126,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_payable() honours the intent's own amount even if the instance's minimum is raised later.
+     *
      * @covers ::get_payable
      */
     public function test_get_payable_succeeds_when_minimum_raised_after_intent_created(): void {
@@ -130,6 +143,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * deliver_order() returns true and enrols the payer with the configured role and enrolment period.
+     *
      * @covers ::deliver_order
      */
     public function test_deliver_order_returns_true_and_enrols_with_role_and_period(): void {
@@ -150,6 +165,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * deliver_order() still delivers the intent's original amount even if the minimum is raised later.
+     *
      * @covers ::deliver_order
      */
     public function test_deliver_order_delivers_even_if_minimum_raised_after_intent_created(): void {
@@ -169,6 +186,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_success_url() points to the course page for a valid intent.
+     *
      * @covers ::get_success_url
      */
     public function test_get_success_url_points_to_course(): void {
@@ -186,6 +205,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_success_url() still returns a usable URL when the intent no longer exists.
+     *
      * @covers ::get_success_url
      */
     public function test_get_success_url_falls_back_when_intent_missing(): void {
@@ -195,6 +216,8 @@ final class service_provider_test extends \advanced_testcase {
     }
 
     /**
+     * deliver_order() throws a coding_exception for a payment area other than 'donation'.
+     *
      * @covers ::get_payable
      * @covers ::deliver_order
      */

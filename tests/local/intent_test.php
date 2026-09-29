@@ -31,24 +31,25 @@ namespace enrol_donation\local;
  * @coversDefaultClass \enrol_donation\local\intent
  */
 final class intent_test extends \advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
     }
 
     /**
+     * Returns the enrol_donation test data generator.
+     *
      * @return \enrol_donation_generator
      */
     protected function donation_generator(): \enrol_donation_generator {
         return $this->getDataGenerator()->get_plugin_generator('enrol_donation');
     }
 
-    // ------------------------------------------------------------------
-    // parse_amount() - locale-aware.
-    // ------------------------------------------------------------------
+    // Tests for parse_amount(), locale-aware.
 
     /**
+     * parse_amount() accepts a plain integer string.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_accepts_plain_integer(): void {
@@ -57,15 +58,19 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * parse_amount() rejects an amount whose dot could be a thousands separator or a decimal point in es.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_rejects_thousands_separator_read_as_decimal_in_es(): void {
         force_current_language('es');
-        // "1.000" in es (decsep=',') looks like 3 decimals after a dot -> ambiguous, reject.
+        // In es (decsep=','), "1.000" looks like 3 decimals after a dot -> ambiguous, reject.
         $this->assertNull(intent::parse_amount('1.000'));
     }
 
     /**
+     * parse_amount() rejects an amount whose dot could be a thousands separator or a decimal point in id.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_rejects_thousands_separator_read_as_decimal_in_id(): void {
@@ -74,15 +79,19 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * parse_amount() rejects an amount whose comma could be a thousands separator in en.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_rejects_thousands_separator_in_en(): void {
         force_current_language('en');
-        // "1,000" in en (thousandssep=',') is ambiguous with 3 trailing digits -> reject.
+        // In en (thousandssep=','), "1,000" is ambiguous with 3 trailing digits -> reject.
         $this->assertNull(intent::parse_amount('1,000'));
     }
 
     /**
+     * parse_amount() rejects an amount with both a dot and a comma, regardless of locale.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_rejects_both_separators_present_in_any_locale(): void {
@@ -93,6 +102,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * parse_amount() rejects "150.000" in id, since a dot there is a thousands separator, not a decimal point.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_rejects_150000_with_dot_thousands_in_id(): void {
@@ -101,6 +112,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * parse_amount() accepts a comma as the decimal separator in es.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_comma_decimal_in_es(): void {
@@ -109,6 +122,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * parse_amount() accepts a dot as the decimal separator in en.
+     *
      * @covers ::parse_amount
      */
     public function test_parse_amount_dot_decimal_in_en(): void {
@@ -117,8 +132,11 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * parse_amount() rejects malformed or non-numeric raw input.
+     *
      * @covers ::parse_amount
      * @dataProvider invalid_raw_amount_provider
+     * @param string $raw
      */
     public function test_parse_amount_rejects_invalid_raw_input(string $raw): void {
         force_current_language('en');
@@ -142,11 +160,11 @@ final class intent_test extends \advanced_testcase {
         ];
     }
 
-    // ------------------------------------------------------------------
-    // validate_amount().
-    // ------------------------------------------------------------------
+    // Tests for validate_amount().
 
     /**
+     * validate_amount() rejects an amount below the instance's minimum donation.
+     *
      * @covers ::validate_amount
      */
     public function test_validate_amount_rejects_below_minimum(): void {
@@ -160,6 +178,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * validate_amount() accepts an amount equal to the minimum donation after rounding.
+     *
      * @covers ::validate_amount
      */
     public function test_validate_amount_accepts_minimum_after_rounding(): void {
@@ -173,6 +193,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * validate_amount() rejects an amount above the instance's maximum donation.
+     *
      * @covers ::validate_amount
      */
     public function test_validate_amount_rejects_above_maximum(): void {
@@ -186,6 +208,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * validate_amount() accepts the minimum donation correctly for a zero-decimal currency.
+     *
      * @covers ::validate_amount
      */
     public function test_validate_amount_accepts_minimum_for_zero_decimal_currency(): void {
@@ -199,11 +223,11 @@ final class intent_test extends \advanced_testcase {
         $this->assertEquals(100.0, intent::get_minimum($instance));
     }
 
-    // ------------------------------------------------------------------
-    // create_or_reuse() - session-scoped reuse.
-    // ------------------------------------------------------------------
+    // Tests for create_or_reuse(), session-scoped reuse.
 
     /**
+     * create_or_reuse() returns the same intent for the same amount within one session.
+     *
      * @covers ::create_or_reuse
      */
     public function test_create_or_reuse_returns_same_intent_for_same_amount_within_session(): void {
@@ -220,6 +244,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * create_or_reuse() creates a new intent when the requested amount differs from the previous one.
+     *
      * @covers ::create_or_reuse
      */
     public function test_create_or_reuse_creates_new_intent_for_different_amount(): void {
@@ -236,6 +262,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * create_or_reuse() creates a new intent once the previous session entry is older than 24h.
+     *
      * @covers ::create_or_reuse
      */
     public function test_create_or_reuse_creates_new_intent_when_previous_is_older_than_24h(): void {
@@ -258,6 +286,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * create_or_reuse() creates a new intent when the previous one for that amount has already been paid.
+     *
      * @covers ::create_or_reuse
      */
     public function test_create_or_reuse_creates_new_intent_when_previous_already_paid(): void {
@@ -277,6 +307,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * create_or_reuse() enforces its per-session soft limit by recounting after each insert.
+     *
      * @covers ::create_or_reuse
      */
     public function test_create_or_reuse_soft_limit_recounted_after_insert(): void {
@@ -299,11 +331,11 @@ final class intent_test extends \advanced_testcase {
         }
     }
 
-    // ------------------------------------------------------------------
-    // delete_stale() - single atomic DELETE, never touches paid intents.
-    // ------------------------------------------------------------------
+    // Tests for delete_stale(): single atomic DELETE, never touches paid intents.
 
     /**
+     * delete_stale() removes an unpaid intent older than the given cutoff.
+     *
      * @covers ::delete_stale
      */
     public function test_delete_stale_removes_old_unpaid_intent(): void {
@@ -319,6 +351,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * delete_stale() keeps an unpaid intent that is more recent than the given cutoff.
+     *
      * @covers ::delete_stale
      */
     public function test_delete_stale_keeps_recent_unpaid_intent(): void {
@@ -334,6 +368,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * delete_stale() never removes a paid intent, even if it is old and still undelivered.
+     *
      * @covers ::delete_stale
      */
     public function test_delete_stale_never_removes_paid_intent_even_if_old_and_undelivered(): void {
@@ -352,6 +388,8 @@ final class intent_test extends \advanced_testcase {
     }
 
     /**
+     * The cleanup task raises the configured retention to a 30-day floor before deleting stale intents.
+     *
      * @covers \enrol_donation\task\cleanup_stale_intents
      */
     public function test_cleanup_stale_intents_task_raises_retention_floor_to_30_days(): void {

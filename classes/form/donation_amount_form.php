@@ -26,6 +26,8 @@ namespace enrol_donation\form;
 
 use enrol_donation\local\intent;
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir . '/formslib.php');
 
 /**
@@ -38,8 +40,9 @@ require_once($CFG->libdir . '/formslib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class donation_amount_form extends \moodleform {
-
     /**
+     * Builds the donation amount field and submit button.
+     *
      * @return void
      */
     protected function definition() {
@@ -79,6 +82,8 @@ class donation_amount_form extends \moodleform {
     }
 
     /**
+     * Validates the submitted amount against the instance's minimum and maximum.
+     *
      * @param array $data
      * @param array $files
      * @return array

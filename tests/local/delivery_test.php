@@ -31,13 +31,14 @@ namespace enrol_donation\local;
  * @coversDefaultClass \enrol_donation\local\delivery
  */
 final class delivery_test extends \advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
     }
 
     /**
+     * Returns the enrol_donation test data generator.
+     *
      * @return \enrol_donation_generator
      */
     protected function donation_generator(): \enrol_donation_generator {
@@ -45,6 +46,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * Calling deliver() twice for the same paid intent enrols the user only once.
+     *
      * @covers ::deliver
      */
     public function test_deliver_called_twice_results_in_single_enrolment_and_role_assignment(): void {
@@ -64,6 +67,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * A second deliver() call does not overwrite the enrolment's existing start/end dates.
+     *
      * @covers ::deliver
      */
     public function test_deliver_second_call_does_not_change_enrolment_dates(): void {
@@ -90,6 +95,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * deliver() does not reactivate an enrolment that has been manually suspended.
+     *
      * @covers ::deliver
      */
     public function test_deliver_does_not_reactivate_suspended_enrolment(): void {
@@ -102,8 +109,12 @@ final class delivery_test extends \advanced_testcase {
 
         delivery::deliver($intent, $user->id);
 
-        $DB->set_field('user_enrolments', 'status', ENROL_USER_SUSPENDED,
-            ['enrolid' => $instance->id, 'userid' => $user->id]);
+        $DB->set_field(
+            'user_enrolments',
+            'status',
+            ENROL_USER_SUSPENDED,
+            ['enrolid' => $instance->id, 'userid' => $user->id]
+        );
 
         delivery::deliver($intent, $user->id);
 
@@ -112,6 +123,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * deliver() leaves no open DB transaction behind when the enrol instance lookup throws.
+     *
      * @covers ::deliver
      */
     public function test_deliver_leaves_no_open_transaction_after_exception(): void {
@@ -129,12 +142,15 @@ final class delivery_test extends \advanced_testcase {
             $this->fail('Expected an exception because the enrol instance no longer exists.');
         } catch (\dml_exception $e) {
             // Expected.
+            unset($e);
         }
 
         $this->assertFalse($DB->is_transaction_started());
     }
 
     /**
+     * deliver() refuses a payer id of 0 and leaves the intent marked as undelivered.
+     *
      * @covers ::deliver
      */
     public function test_deliver_rejects_payer_zero_without_marking_delivered(): void {
@@ -151,6 +167,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * deliver() refuses the guest user as payer and leaves the intent marked as undelivered.
+     *
      * @covers ::deliver
      */
     public function test_deliver_rejects_guest_payer_without_marking_delivered(): void {
@@ -168,6 +186,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * deliver() refuses a deleted payer account and leaves the intent marked as undelivered.
+     *
      * @covers ::deliver
      */
     public function test_deliver_rejects_deleted_payer_without_marking_delivered(): void {
@@ -186,6 +206,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * deliver() still enrols the payer even when the enrolment instance is disabled.
+     *
      * @covers ::deliver
      */
     public function test_deliver_succeeds_even_if_instance_is_disabled(): void {
@@ -202,6 +224,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * get_undelivered_for_user() only returns undelivered payments matching both the user and instance.
+     *
      * @covers ::get_undelivered_for_user
      */
     public function test_get_undelivered_for_user_filters_by_user_and_instance(): void {
@@ -225,11 +249,11 @@ final class delivery_test extends \advanced_testcase {
         $this->assertCount(0, delivery::get_undelivered_for_user($instanceb->id, $userb->id));
     }
 
-    // ------------------------------------------------------------------
-    // redeliver_paid_donations scheduled task.
-    // ------------------------------------------------------------------
+    // Tests for the redeliver_paid_donations scheduled task.
 
     /**
+     * The redeliver task delivers payments once they are older than the 10-minute grace period.
+     *
      * @covers \enrol_donation\task\redeliver_paid_donations
      */
     public function test_redeliver_task_delivers_payments_older_than_10_minutes(): void {
@@ -248,6 +272,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * The redeliver task skips payments still within the 10-minute grace period.
+     *
      * @covers \enrol_donation\task\redeliver_paid_donations
      */
     public function test_redeliver_task_ignores_payments_younger_than_10_minutes(): void {
@@ -266,6 +292,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * The redeliver task does not silently re-enrol a user who was manually unenrolled after delivery.
+     *
      * @covers \enrol_donation\task\redeliver_paid_donations
      */
     public function test_redeliver_task_does_not_reenrol_user_after_manual_unenrolment(): void {
@@ -291,6 +319,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * Two payment rows recorded for the same intent still result in a single enrolment.
+     *
      * @covers ::get_paid_undelivered
      * @covers \enrol_donation\task\redeliver_paid_donations
      */
@@ -313,6 +343,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * The redeliver task keeps retrying a payment even 30 days after it was made.
+     *
      * @covers \enrol_donation\task\redeliver_paid_donations
      */
     public function test_redeliver_task_keeps_retrying_payment_from_30_days_ago(): void {
@@ -331,6 +363,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * A delivery failure for one intent during the redeliver task does not affect another intent's delivery.
+     *
      * @covers \enrol_donation\task\redeliver_paid_donations
      */
     public function test_redeliver_task_failure_in_one_intent_does_not_revert_another(): void {
@@ -358,6 +392,8 @@ final class delivery_test extends \advanced_testcase {
     }
 
     /**
+     * The redeliver task sends an admin alert for an overdue payment, throttled to once per 24h.
+     *
      * @covers \enrol_donation\local\delivery::send_alerts
      * @covers \enrol_donation\task\redeliver_paid_donations
      */

@@ -35,7 +35,6 @@ namespace enrol_donation\local;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class intent {
-
     /** @var float Technical ceiling for any donation amount, regardless of currency or instance configuration. */
     const HARD_MAX = 1000000000.0;
 
@@ -216,17 +215,22 @@ class intent {
         if ($recentids) {
             [$insql, $inparams] = $DB->get_in_or_equal($recentids, SQL_PARAMS_NAMED);
 
-            $paidids = $DB->get_fieldset_select('payments', 'itemid',
+            $paidids = $DB->get_fieldset_select(
+                'payments',
+                'itemid',
                 "component = :component AND paymentarea = :paymentarea AND itemid $insql",
-                $inparams + ['component' => self::COMPONENT, 'paymentarea' => self::PAYMENTAREA]);
+                $inparams + ['component' => self::COMPONENT, 'paymentarea' => self::PAYMENTAREA]
+            );
 
-            $candidates = $DB->get_records_select('enrol_donation_intent',
+            $candidates = $DB->get_records_select(
+                'enrol_donation_intent',
                 "id $insql AND instanceid = :instanceid AND amount = :amount AND currency = :currency",
                 $inparams + [
                     'instanceid' => $instance->id,
                     'amount' => $rounded,
                     'currency' => $instance->currency,
-                ]);
+                ]
+            );
 
             foreach ($candidates as $candidate) {
                 if (!in_array($candidate->id, $paidids)) {

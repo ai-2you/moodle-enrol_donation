@@ -34,13 +34,14 @@ use core_privacy\local\request\userlist;
  * @coversDefaultClass \enrol_donation\privacy\provider
  */
 final class provider_test extends \advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
     }
 
     /**
+     * Returns the enrol_donation test data generator.
+     *
      * @return \enrol_donation_generator
      */
     protected function donation_generator(): \enrol_donation_generator {
@@ -59,6 +60,8 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_contextid_for_payment() resolves a donation payment to its course context.
+     *
      * @covers ::get_contextid_for_payment
      */
     public function test_get_contextid_for_payment_returns_course_context(): void {
@@ -71,6 +74,8 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_contextid_for_payment() returns null once the underlying intent has been deleted.
+     *
      * @covers ::get_contextid_for_payment
      */
     public function test_get_contextid_for_payment_returns_null_when_intent_gone(): void {
@@ -84,6 +89,8 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_users_in_context() lists all payers for the donation payments made in a course context.
+     *
      * @covers ::get_users_in_context
      */
     public function test_get_users_in_context_course_returns_payers(): void {
@@ -103,6 +110,8 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * get_users_in_context() lists payers of orphaned payments under the system context.
+     *
      * @covers ::get_users_in_context
      */
     public function test_get_users_in_context_system_returns_orphaned_payments(): void {
@@ -122,6 +131,8 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * delete_data_for_user() deletes only the requested user's payments, leaving others intact.
+     *
      * @covers ::delete_data_for_user
      */
     public function test_delete_data_for_user_deletes_only_that_users_payments(): void {
@@ -148,6 +159,8 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * delete_data_for_all_users_in_context() deletes every payment made in that course.
+     *
      * @covers ::delete_data_for_all_users_in_context
      */
     public function test_delete_data_for_all_users_in_context_deletes_all_course_payments(): void {
@@ -170,6 +183,8 @@ final class provider_test extends \advanced_testcase {
     }
 
     /**
+     * delete_data_for_user() deletes a user's orphaned payment even under the system context.
+     *
      * @covers ::delete_data_for_user
      */
     public function test_delete_data_for_user_deletes_orphaned_payments_in_system_context(): void {

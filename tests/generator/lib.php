@@ -23,7 +23,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_donation_generator extends component_generator_base {
-
     /** @var int Counter used to keep generated instance names unique. */
     protected $instancecounter = 0;
 

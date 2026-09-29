@@ -25,24 +25,39 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
-
-    $settings->add(new admin_setting_configselect('enrol_donation/status',
-        get_string('status', 'enrol_donation'), '', ENROL_INSTANCE_DISABLED, [
+    $settings->add(new admin_setting_configselect(
+        'enrol_donation/status',
+        get_string('status', 'enrol_donation'),
+        '',
+        ENROL_INSTANCE_DISABLED,
+        [
             ENROL_INSTANCE_ENABLED => get_string('yes'),
             ENROL_INSTANCE_DISABLED => get_string('no'),
-        ]));
+        ]
+    ));
 
-    $settings->add(new admin_setting_configduration('enrol_donation/enrolperiod',
-        get_string('enrolperiod', 'enrol_donation'), get_string('enrolperiod_help', 'enrol_donation'), 0));
+    $settings->add(new admin_setting_configduration(
+        'enrol_donation/enrolperiod',
+        get_string('enrolperiod', 'enrol_donation'),
+        get_string('enrolperiod_help', 'enrol_donation'),
+        0
+    ));
 
     if (!during_initial_install()) {
-        $settings->add(new admin_setting_configselect('enrol_donation/roleid',
-            get_string('assignrole', 'enrol_donation'), '',
+        $settings->add(new admin_setting_configselect(
+            'enrol_donation/roleid',
+            get_string('assignrole', 'enrol_donation'),
+            '',
             $DB->get_field('role', 'id', ['shortname' => 'student']),
-            get_default_enrol_roles(context_system::instance())));
+            get_default_enrol_roles(context_system::instance())
+        ));
     }
 
-    $settings->add(new admin_setting_configtext('enrol_donation/intentretention',
-        get_string('intentretention', 'enrol_donation'), get_string('intentretention_desc', 'enrol_donation'),
-        \enrol_donation\task\cleanup_stale_intents::MINIMUM_RETENTION_DAYS, PARAM_INT));
+    $settings->add(new admin_setting_configtext(
+        'enrol_donation/intentretention',
+        get_string('intentretention', 'enrol_donation'),
+        get_string('intentretention_desc', 'enrol_donation'),
+        \enrol_donation\task\cleanup_stale_intents::MINIMUM_RETENTION_DAYS,
+        PARAM_INT
+    ));
 }

@@ -36,8 +36,9 @@ use enrol_donation\local\intent;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class redeliver_paid_donations extends \core\task\scheduled_task {
-
     /**
+     * Returns the task's name shown in the scheduled tasks admin UI.
+     *
      * @return string
      */
     public function get_name() {
@@ -45,6 +46,8 @@ class redeliver_paid_donations extends \core\task\scheduled_task {
     }
 
     /**
+     * Retries delivery of paid-but-undelivered donations and alerts admins of overdue cases.
+     *
      * @return void
      */
     public function execute() {
