@@ -50,6 +50,11 @@ class donation_amount_form extends \moodleform {
         /** @var \stdClass $instance */
         $instance = $this->_customdata['instance'];
 
+        // enrol/index.php requires "id" (the course id) on every request, GET or POST -- this
+        // preserves it with its real meaning instead of leaving the page without one.
+        $mform->addElement('hidden', 'id', $instance->courseid);
+        $mform->setType('id', PARAM_INT);
+
         $mform->addElement('hidden', 'instance', $instance->id);
         $mform->setType('instance', PARAM_INT);
 

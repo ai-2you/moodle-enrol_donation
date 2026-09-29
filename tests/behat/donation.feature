@@ -127,4 +127,4 @@ Feature: Donating to access a course via enrol_donation
     Then I should see "10"
     And I should see "500"
     And I should see "50"
-    And I should see "1000"
+    And I should see "1,000"
